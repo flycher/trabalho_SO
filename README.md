@@ -15,9 +15,9 @@
     
  ## Para compilar e executar o código serial
  
-    **$** gcc trabalhoso_serial.c -o serial
-    **$** ./serial arquivomatrizA.txt arquivomatrizB.txt resultadoserial.txt
+    $ gcc trabalhoso_serial.c -o serial
+    $ ./serial arquivomatrizA.txt arquivomatrizB.txt resultadoserial.txt
  ## Para compilar e executar o código paralelo
  
-    **$** gcc trabalhoso_paralelo.c -pthread -o paralelo
-    **$** ./paralelo arquivomatrizA.txt arquivomatrizB.txt resultadoparalelo.txt
+    $ gcc trabalhoso_paralelo.c -pthread -o paralelo
+    $ ./paralelo arquivomatrizA.txt arquivomatrizB.txt resultadoparalelo.txt
