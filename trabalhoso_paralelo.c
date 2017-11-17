@@ -121,14 +121,16 @@ int main(int argc, char* argv[]) {
 
 	for (i = 0; i < matrizes.tamanho; i++) {
 		for(j = 0; j < matrizes.tamanho; j++) {
-			fprintf(f, "%.1f:", matrizes.matC[i*matrizes.tamanho + j]); //armazena o resultado no arquivo
+			if(j != matrizes.tamanho -1)
+				fprintf(f, "%.1f:", matrizes.matC[i*matrizes.tamanho + j]); //armazena o resultado no arquivo
+			else
+				fprintf(f, "%.1f", matrizes.matC[i*matrizes.tamanho + j]); //armazena o resultado no arquivo
 		}
 		fprintf(f, "\n");
 	}
 
 	printf("Matriz Resultante salva em %s\n", argv[3]);
 	fclose(f); //fecha o arquivo
-	printf("Arquivo %s fechado.\n", argv[3]);
 
 	free(matrizes.matA); //libera memoria da matriz A
 	free(matrizes.matB); //libera memoria da matriz B

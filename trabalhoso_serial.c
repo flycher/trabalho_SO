@@ -6,7 +6,6 @@ struct matrix {
 	int tamanho;
 	float *matA;
 	float *matB;
-	float *matC;
 };
 
 float* ler_matriz(char n, char *arquivo) {
@@ -63,7 +62,6 @@ int main(int argc, char *argv[]) {
 		matrizes.tamanho = matrizes.tamanho = ler_tamanho_matriz(argv[1]); //lê o tamanho da matriz resultado do arquivo
   		matrizes.matA = ler_matriz('A', argv[1]); //lê matrizA
   		matrizes.matB = ler_matriz('B', argv[2]); //lê matrizB
-		matrizes.matC = (float *) malloc(matrizes.tamanho * matrizes.tamanho * sizeof(float)); //aloca memoria para matrizC
 
 	FILE *f = fopen(argv[3], "w"); //abre ou cria o arquivo com o nome do quarto argumento
 
@@ -77,19 +75,19 @@ int main(int argc, char *argv[]) {
 			for(k = 0; k < matrizes.tamanho; k++) {
 				soma += matrizes.matA[i*matrizes.tamanho + k] * matrizes.matB[k + j*matrizes.tamanho];
 			}
-			matrizes.matC[i*matrizes.tamanho + j] = soma; //guarda o valor da multiplicação na matriz c
-			fprintf(f, "%.1f:", matrizes.matC[i*matrizes.tamanho + j]); //armazena o resultado no arquivo
+			if(j != matrizes.tamanho - 1)
+				fprintf(f, "%.1f:", soma); //armazena o resultado no arquivo
+			else
+				fprintf(f, "%.1f", soma); //armazena o resultado no arquivo
 		}
 		fprintf(f, "\n");
 	}
 
 	printf("Matriz Resultante salva em %s\n", argv[3]);
 	fclose(f); //fecha o arquivo
-	printf("Arquivo %s fechado.\n", argv[3]);
 
 	free(matrizes.matA); //libera memoria da matriz A
 	free(matrizes.matB); //libera memoria da matriz B
-	free(matrizes.matC); //libera memoria da matriz C
 
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	elapsed = (finish.tv_sec - start.tv_sec);
