@@ -54,8 +54,11 @@ int ler_tamanho_matriz(char *arquivo) {
 void* multiplicacao_matrizes(void* matrizes) {
 	struct matrix *mat = matrizes; //copia as variaveis da struct em cada thread
 
-	int tam = mat->parte;
+	int tam;
+	pthread_mutex_lock(&mutex); //trava mutex para evitar sobreposição de valores
+	tam = mat->parte;
 	mat->parte++; //aumenta a variavel para o proximo thread
+	pthread_mutex_unlock(&mutex); //trava mutex para evitar sobreposição de valores
 	int de = (tam * mat->tamanho)/mat->num_cores; //linha em que o thread começa a fazer a multiplicação
   	int ate = ((tam+1) * mat->tamanho)/mat->num_cores; //linha ate onde o thread faz a multiplicação
   	int i, j, k;
@@ -104,14 +107,12 @@ int main(int argc, char* argv[]) {
 	printf("Calculando o produto de Matrizes...\n");
 
   	for (i = 0; i < num_cores; i++) {
-  		pthread_mutex_lock(&mutex); //trava mutex para evitar sobreposição de valores
-  		//cria thread e passa funcao para multiplicar e parametro
+  		//cria thread e passa funcao para multiplicar e parametros como estrutura convertida em void
 	    if (pthread_create (&thread[i], NULL, multiplicacao_matrizes, (void *)&matrizes) != 0 ) {
 	      	printf("Não foi possivel criar thread.");
 	      	free(thread);
 	      	exit(0);
 	    }
-	    pthread_mutex_unlock(&mutex); //destrava mutex
   	}
 
   	//espera para que todos os threads terminem
