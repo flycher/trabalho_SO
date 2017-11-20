@@ -8,14 +8,14 @@ struct matrix {
 	float *matB;
 };
 
-float* ler_matriz(char n, char *arquivo) {
-	FILE *f = fopen(arquivo, "r"); //abre arquivo con nome dado no segundo argumento em modo leitura
+float* ler_matriz_a(char *arquivo) {
+	FILE *f = fopen(arquivo, "r"); //abre arquivo con nome dado no argumento em modo leitura
 	if (f == 0) { //checa se o arquivo foi aberto com sucesso
-   		printf("Erro: nao foi possivel abrir arquivo!");
-   		exit(0);
-   	}
+    	printf("Erro: nao foi possivel abrir arquivo!");
+    	exit(0);
+    }
 
-	printf("Lendo matriz%c de %s\n", n, arquivo);
+	printf("Lendo matrizA de %s\n", arquivo);
 	int i, j, tam;
 	fscanf(f, "%d\n", &tam); //lê o tamanho da matriz do arquivo
   	float *matriz = (float *) malloc(tam * tam * sizeof(float)); //aloca memoria para a matriz
@@ -24,7 +24,30 @@ float* ler_matriz(char n, char *arquivo) {
    		for (j = 0; j < tam; j++) {
        		if (!fscanf(f, "%f:", &matriz[i*tam + j])) //lê a matriz do arquivo
        			break;
-   		}
+  		}
+  	}
+
+	fclose(f); //fecha o arquivo
+	return matriz;
+}
+
+float* ler_matriz_b(char *arquivo) {
+	FILE *f = fopen(arquivo, "r"); //abre arquivo con nome dado no argumento em modo leitura
+	if (f == 0) { //checa se o arquivo foi aberto com sucesso
+    	printf("Erro: nao foi possivel abrir arquivo!");
+    	exit(0);
+    }
+
+	printf("Lendo matrizB de %s\n", arquivo);
+	int i, j, tam;
+	fscanf(f, "%d\n", &tam); //lê o tamanho da matriz do arquivo
+  	float *matriz = (float *) malloc(tam * tam * sizeof(float)); //aloca memoria para a matriz
+
+  	for (i = 0; i < tam; i++) {
+   		for (j = 0; j < tam; j++) {
+       		if (!fscanf(f, "%f:", &matriz[j*tam + i])) //lê a matriz do arquivo
+       			break;
+  		}
   	}
 
 	fclose(f); //fecha o arquivo
@@ -60,8 +83,8 @@ int main(int argc, char *argv[]) {
 	int i, j, k; //para armazenar o tamanho das matrizes
 	struct matrix matrizes;
 		matrizes.tamanho = matrizes.tamanho = ler_tamanho_matriz(argv[1]); //lê o tamanho da matriz resultado do arquivo
-  		matrizes.matA = ler_matriz('A', argv[1]); //lê matrizA
-  		matrizes.matB = ler_matriz('B', argv[2]); //lê matrizB
+  		matrizes.matA = ler_matriz_a(argv[1]); //lê matrizA
+  		matrizes.matB = ler_matriz_b(argv[2]); //lê matrizB
 
 	FILE *f = fopen(argv[3], "w"); //abre ou cria o arquivo com o nome do quarto argumento
 

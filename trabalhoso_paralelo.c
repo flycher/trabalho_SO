@@ -13,29 +13,54 @@ struct matrix { //struct para guardar argumentos para passar aos threads
 	float *matA;
 	float *matB;
 	float *matC;
+	char *arquivoA;
+	char *arquivoB;
 };
 
-float* ler_matriz(char n, char *arquivo) {
-	FILE *f = fopen(arquivo, "r"); //abre arquivo con nome dado no argumento em modo leitura
+void* ler_matriz_a(void *matriz) {
+	struct matrix *mat = matriz; //copia as variaveis da struct em cada thread
+	FILE *f = fopen(mat->arquivoA, "r"); //abre arquivo con nome dado no argumento em modo leitura
 	if (f == 0) { //checa se o arquivo foi aberto com sucesso
     	printf("Erro: nao foi possivel abrir arquivo!");
     	exit(0);
     }
 
-	printf("Lendo matriz%c de %s\n", n, arquivo);
+	printf("Lendo matrizA de %s\n", mat->arquivoA);
 	int i, j, tam;
 	fscanf(f, "%d\n", &tam); //lê o tamanho da matriz do arquivo
-  	float *matriz = (float *) malloc(tam * tam * sizeof(float)); //aloca memoria para a matriz
+  	mat->matA = (float *) malloc(tam * tam * sizeof(float)); //aloca memoria para a matriz
 
   	for (i = 0; i < tam; i++) {
    		for (j = 0; j < tam; j++) {
-       		if (!fscanf(f, "%f:", &matriz[i*tam + j])) //lê a matriz do arquivo
+       		if (!fscanf(f, "%f:", &mat->matA[i*tam + j])) //lê a matriz do arquivo
        			break;
   		}
   	}
 
 	fclose(f); //fecha o arquivo
-	return matriz;
+}
+
+void* ler_matriz_b(void *matriz) {
+	struct matrix *mat = matriz; //copia as variaveis da struct em cada thread
+	FILE *f = fopen(mat->arquivoB, "r"); //abre arquivo con nome dado no argumento em modo leitura
+	if (f == 0) { //checa se o arquivo foi aberto com sucesso
+    	printf("Erro: nao foi possivel abrir arquivo!");
+    	exit(0);
+    }
+
+	printf("Lendo matrizB de %s\n", mat->arquivoB);
+	int i, j, tam;
+	fscanf(f, "%d\n", &tam); //lê o tamanho da matriz do arquivo
+  	mat->matB = (float *) malloc(tam * tam * sizeof(float)); //aloca memoria para a matriz
+
+  	for (i = 0; i < tam; i++) {
+   		for (j = 0; j < tam; j++) {
+       		if (!fscanf(f, "%f:", &mat->matB[j*tam + i])) //lê a matriz do arquivo
+       			break;
+  		}
+  	}
+
+	fclose(f); //fecha o arquivo
 }
 
 int ler_tamanho_matriz(char *arquivo) {
@@ -58,19 +83,17 @@ void* multiplicacao_matrizes(void* matrizes) {
 	pthread_mutex_lock(&mutex); //trava mutex para evitar sobreposição de valores
 	tam = mat->parte;
 	mat->parte++; //aumenta a variavel para o proximo thread
-	pthread_mutex_unlock(&mutex); //trava mutex para evitar sobreposição de valores
+	pthread_mutex_unlock(&mutex); //destrava mutex
 	int de = (tam * mat->tamanho)/mat->num_cores; //linha em que o thread começa a fazer a multiplicação
   	int ate = ((tam+1) * mat->tamanho)/mat->num_cores; //linha ate onde o thread faz a multiplicação
   	int i, j, k;
-  	float soma;
 
   	printf("Iniciado parte %d (de %d ate %d)\n", tam, de, ate-1);
   	for (i = de; i < ate; i++) {
     	for (j = 0; j < mat->tamanho; j++) {
-    	  	soma = 0;
+    	  	mat->matC[i*mat->tamanho + j] = 0;
       		for (k = 0; k < mat->tamanho; k++)
-				soma += mat->matA[i*mat->tamanho + k] * mat->matB[k + j*mat->tamanho];
-			mat->matC[i*mat->tamanho + j] = soma;
+				mat->matC[i*mat->tamanho + j] += mat->matA[i*mat->tamanho + k] * mat->matB[k + j*mat->tamanho];
 		}
   	}
 
@@ -78,10 +101,6 @@ void* multiplicacao_matrizes(void* matrizes) {
 }
 
 int main(int argc, char* argv[]) {
-	//para exibir tempo real de execução
-	struct timespec start, finish;
-	double elapsed;
-	clock_gettime(CLOCK_MONOTONIC, &start);
 
 	//checa se os argumentos com o nome dos arquivos foram inseridos na execução
 	if(argc != 4){
@@ -94,11 +113,21 @@ int main(int argc, char* argv[]) {
 	struct matrix matrizes; //passa valores para estrutura
 	    matrizes.parte = 0; //valor inicial da parte que o thread fará as multiplicaçoes
 	    matrizes.tamanho = ler_tamanho_matriz(argv[1]); //lê o tamanho da matriz resultado do arquivo
-	    matrizes.num_cores = num_cores; //numero de threads que serao criados
-		matrizes.matA = ler_matriz('A',argv[1]); //lê matrizA
-  		matrizes.matB = ler_matriz('B',argv[2]); //lê matrizB
-		matrizes.matC = (float *)malloc(matrizes.tamanho * matrizes.tamanho * sizeof(float)); //aloca memoria para matrizC
-  	pthread_t* thread = (pthread_t*)malloc(num_cores * sizeof(pthread_t)); //aloca memoria para os threads
+	    matrizes.num_cores = num_cores; //numero de threads que serao criados para multiplicação
+		matrizes.arquivoA = argv[1];
+		matrizes.arquivoB = argv[2];
+  		matrizes.matC = (float *)malloc(matrizes.tamanho * matrizes.tamanho * sizeof(float)); //aloca memoria para matrizC
+
+
+  	pthread_t* thread = (pthread_t*)malloc(2 * sizeof(pthread_t)); //aloca memoria para os threads
+  	pthread_create (&thread[i], NULL, ler_matriz_a, (void *)&matrizes);
+  	pthread_create (&thread[i], NULL, ler_matriz_b, (void *)&matrizes);
+  	for (i = 0; i < 2; i++)
+		pthread_join(thread[i], NULL);
+  	free(thread); //libera a memoria de threads
+
+
+  	thread = (pthread_t*)malloc(num_cores * sizeof(pthread_t)); //aloca memoria para os threads
 
 	FILE *f = fopen(argv[3], "w"); //abre ou cria o arquivo com o nome do quarto argumento
 
@@ -136,12 +165,6 @@ int main(int argc, char* argv[]) {
 	free(matrizes.matA); //libera memoria da matriz A
 	free(matrizes.matB); //libera memoria da matriz B
 	free(matrizes.matC); //libera memoria da matriz C
-
-
-	clock_gettime(CLOCK_MONOTONIC, &finish);
-	elapsed = (finish.tv_sec - start.tv_sec);
-	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-	printf("Tempo gasto: %lf segundos.\n", elapsed);
 
 	return 0;
 }
