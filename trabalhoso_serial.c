@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 struct matrix {
 	int tamanho;
@@ -68,10 +67,6 @@ int ler_tamanho_matriz(char *arquivo) {
 }
 
 int main(int argc, char *argv[]) {
-	//para exibir o tempo real de execução
-	struct timespec start, finish;
-	double elapsed;
-	clock_gettime(CLOCK_MONOTONIC, &start);
 
 	//checa se os argumentos com o nome dos arquivos foram inseridos na execução
 	if(argc != 4){
@@ -111,11 +106,6 @@ int main(int argc, char *argv[]) {
 
 	free(matrizes.matA); //libera memoria da matriz A
 	free(matrizes.matB); //libera memoria da matriz B
-
-	clock_gettime(CLOCK_MONOTONIC, &finish);
-	elapsed = (finish.tv_sec - start.tv_sec);
-	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-	printf("Tempo gasto: %lf segundos.\n", elapsed);
 
 	return 0;
 }
