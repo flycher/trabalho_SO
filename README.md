@@ -21,3 +21,4 @@
  
     $ gcc trabalhoso_paralelo.c -pthread -o paralelo
     $ time ./paralelo arquivomatrizA.txt arquivomatrizB.txt resultadoparalelo.txt
+
